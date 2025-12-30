@@ -65,7 +65,7 @@ export default function CoverPage() {
 
   // const menuBtnStyle = "group flex items-center gap-3 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white px-6 py-4 rounded-2xl transition-all duration-300 border border-white/20 hover:border-white/50 hover:pl-8 shadow-lg hover:shadow-xl w-64";
   // 菜单按钮样式：手机上宽度占满 (w-full)，电脑上固定宽 (md:w-64)
-  const menuBtnStyle = "group flex items-center gap-3 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white px-6 py-4 rounded-2xl transition-all duration-300 border border-white/20 hover:border-white/50 shadow-lg w-full md:w-64";
+  const menuBtnStyle = "group flex items-center gap-3 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white px-6 py-4 rounded-2xl transition-all duration-300 border border-white/20 hover:border-white/50 hover:pl-8 hover:scale-105 active:scale-95 shadow-lg w-full md:w-64";
 
   
   return (

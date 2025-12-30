@@ -199,12 +199,26 @@ export default function RootLayout({ children }) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 bg-white px-1.5 py-1.5 rounded-full border border-slate-100 shadow-sm pr-3">
-                    <button onClick={handleSendFlower} className="w-8 h-8 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center hover:bg-pink-100 transition active:scale-90">
-                        <Flower size={16} fill={hasVoted ? "currentColor" : "none"} />
+                  <div className="flex items-center bg-white rounded-full border border-pink-100 shadow-[0_2px_8px_rgba(244,114,182,0.1)] p-1 pr-4 gap-3 transition-all hover:shadow-[0_4px_12px_rgba(244,114,182,0.2)]">
+                    <button 
+                        onClick={handleSendFlower}
+                        className="bg-pink-50 hover:bg-pink-100 text-pink-500 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all active:scale-95 group"
+                        title="点我送花"
+                    >
+                        {/* 3. 这里换成了 Emoji 🌸，比线条图标更可爱，动效：悬停时旋转 */}
+                        <span className="text-sm group-hover:rotate-12 transition-transform duration-300 -mt-0.5 leading-none">🌸</span>
+                        
+                        {/* 1. 添加了文字说明 */}
+                        <span className="text-xs font-bold">送出花花</span>
                     </button>
-                    <span className="text-xs font-bold text-slate-600 tabular-nums">{flowerCount}</span>
-                    {showVotedMsg && <div className="absolute top-16 right-4 md:right-20 bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg shadow-xl z-50">明天再来吧~</div>}
+                    <span className="text-xs text-slate-400 font-medium cursor-default">
+                        收到 <strong className="text-pink-500 tabular-nums">{flowerCount}</strong> 朵花花
+                    </span>
+                    {showVotedMsg && (
+                      <div className="absolute top-16 right-auto bg-slate-800 text-white text-xs px-3 py-2 rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-top-2">
+                          今天已经送过花花啦 🌸 明天再来吧~
+                      </div>
+                    )}
                   </div>
                   {isAdmin ? (
                   <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
