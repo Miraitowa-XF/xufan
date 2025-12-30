@@ -98,18 +98,18 @@ export default function CoverPage() {
           </div>
           <div className="space-y-4 animate-in slide-in-from-left duration-1000 delay-100">
              <Link href="/profile" className={menuBtnStyle}>
-                <div className="bg-green-400/80 p-2 rounded-xl text-white group-hover:scale-110 transition"><User size={24} /></div>
+                <div className="bg-emerald-400/90 p-2 rounded-xl text-white group-hover:scale-110 transition"><User size={24} /></div>
                 <span className="font-bold text-lg tracking-wide">我的主页</span>
                 <ArrowRight className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" size={20}/>
              </Link>
              <Link href="/notes" className={menuBtnStyle}>
-                <div className="bg-orange-400/80 p-2 rounded-xl text-white group-hover:scale-110 transition"><Book size={24} /></div>
-                <span className="font-bold text-lg tracking-wide">生活笔记</span>
+                <div className="bg-pink-300/90 p-2 rounded-xl text-white group-hover:scale-110 transition"><Book size={24} /></div>
+                <span className="font-bold text-lg tracking-wide">个人笔记</span>
                 <ArrowRight className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" size={20}/>
              </Link>
              <Link href="/messages" className={menuBtnStyle}>
-                <div className="bg-blue-400/80 p-2 rounded-xl text-white group-hover:scale-110 transition"><MessageCircle size={24} /></div>
-                <span className="font-bold text-lg tracking-wide">留言树屋</span>
+                <div className="bg-blue-400/90 p-2 rounded-xl text-white group-hover:scale-110 transition"><MessageCircle size={24} /></div>
+                <span className="font-bold text-lg tracking-wide">留言树洞</span>
                 <ArrowRight className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" size={20}/>
              </Link>
           </div>
