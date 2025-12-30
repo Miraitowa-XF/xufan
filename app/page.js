@@ -63,18 +63,16 @@ export default function CoverPage() {
     setUploading(false);
   };
 
-  const menuBtnStyle = "group flex items-center gap-3 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white px-6 py-4 rounded-2xl transition-all duration-300 border border-white/20 hover:border-white/50 hover:pl-8 shadow-lg hover:shadow-xl w-64";
+  // const menuBtnStyle = "group flex items-center gap-3 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white px-6 py-4 rounded-2xl transition-all duration-300 border border-white/20 hover:border-white/50 hover:pl-8 shadow-lg hover:shadow-xl w-64";
+  // 菜单按钮样式：手机上宽度占满 (w-full)，电脑上固定宽 (md:w-64)
+  const menuBtnStyle = "group flex items-center gap-3 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white px-6 py-4 rounded-2xl transition-all duration-300 border border-white/20 hover:border-white/50 hover:pl-8 hover:scale-105 active:scale-95 shadow-lg w-full md:w-64";
 
+  
   return (
     <div className="fixed inset-0 z-50 w-screen h-screen bg-slate-900 overflow-hidden">
-      
-      {/* 背景图层 */}
       {bgUrl && (
-        <div 
-          className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
-          style={{ backgroundImage: `url(${bgUrl})` }}
-        >
-            <div className="absolute inset-0 bg-black/10" />
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${bgUrl})` }}>
+            <div className="absolute inset-0 bg-black/20" />
         </div>
       )}
 
@@ -90,13 +88,14 @@ export default function CoverPage() {
 
       {/* 核心内容区 */}
       <div className="relative z-10 w-full h-full flex flex-col md:flex-row">
-        {/* 左侧菜单 ... (保持不变) */}
-        <div className="flex-1 flex flex-col justify-center px-12 md:px-24 space-y-6">
-          <div className="mb-8 animate-in slide-in-from-left duration-700">
-             <h1 className="text-6xl font-bold text-white drop-shadow-md tracking-tight mb-2">Welcome</h1>
-             <p className="text-xl text-white/80 font-medium">欢迎来到我的小世界</p>
+        {/* 左侧菜单：手机上增加 padding，文字调小 */}
+        <div className="flex-1 flex flex-col justify-center px-8 md:px-24 space-y-6 md:space-y-8">
+          <div className="mb-4 md:mb-8 animate-in slide-in-from-left duration-700">
+             {/* 手机 text-4xl，电脑 text-6xl */}
+             <h1 className="text-4xl md:text-6xl font-bold text-white drop-shadow-md tracking-tight mb-2">Welcome</h1>
+             <p className="text-lg md:text-xl text-white/80 font-medium">欢迎来到我的小世界</p>
           </div>
-          <div className="space-y-4 animate-in slide-in-from-left duration-1000 delay-100">
+          <div className="space-y-3 md:space-y-4 w-full max-w-xs md:max-w-none animate-in slide-in-from-left duration-1000 delay-100">
              <Link href="/profile" className={menuBtnStyle}>
                 <div className="bg-emerald-400/90 p-2 rounded-xl text-white group-hover:scale-110 transition"><User size={24} /></div>
                 <span className="font-bold text-lg tracking-wide">我的主页</span>
