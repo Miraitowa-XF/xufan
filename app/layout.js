@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Home, User, Book, MessageCircle, LogIn, LogOut, Flower, Edit2, Camera, X } from 'lucide-react';
 import { Noto_Sans_SC } from 'next/font/google';
+import ImageCropper from '@/app/components/ImageCropper';
 
 const notoSans = Noto_Sans_SC({ 
   subsets: ['latin'], 
@@ -27,6 +28,10 @@ export default function RootLayout({ children }) {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', bio: '' });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  // 裁剪相关状态
+  const [selectedAvatarImg, setSelectedAvatarImg] = useState(null);
+  const [showAvatarCropper, setShowAvatarCropper] = useState(false);
 
   const isCoverPage = pathname === '/';
 
@@ -105,35 +110,36 @@ export default function RootLayout({ children }) {
     alert('保存成功！');
   };
 
-  // --- 头像上传逻辑 ---
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploadingAvatar(true);
-    
-    const fileName = `avatar-${Date.now()}`;
-    // 1. 上传文件
-    const { error: uploadError } = await supabase.storage.from('uploads').upload(fileName, file);
-    
-    if (uploadError) {
-        alert('头像上传失败: ' + uploadError.message);
-        setUploadingAvatar(false);
-        return;
+  const onAvatarSelect = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setSelectedAvatarImg(reader.result);
+        setShowAvatarCropper(true);
+      });
+      reader.readAsDataURL(file);
+      e.target.value = null;
     }
+  };
 
-    // 2. 获取链接
-    const { data } = supabase.storage.from('uploads').getPublicUrl(fileName);
-    
-    // 3. 存入数据库
-    const { error: dbError } = await supabase.from('site_config').upsert({ key: 'profile_avatar', value: data.publicUrl });
-    
-    if (dbError) {
-        alert('头像链接保存失败: ' + dbError.message);
-    } else {
-        setProfile(prev => ({ ...prev, avatar: data.publicUrl }));
-        alert('头像更新成功！');
-    }
-    setUploadingAvatar(false);
+  // --- 头像上传逻辑 ---
+  const handleAvatarCropComplete = async (blob) => {
+      setShowAvatarCropper(false);
+      setUploadingAvatar(true);
+      
+      const fileName = `avatar-${Date.now()}`;
+      const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+      const { error } = await supabase.storage.from('uploads').upload(fileName, file);
+      if (error) {
+          alert('上传失败: ' + error.message);
+      } else {
+          const { data } = supabase.storage.from('uploads').getPublicUrl(fileName);
+          await supabase.from('site_config').upsert({ key: 'profile_avatar', value: data.publicUrl });
+          setProfile(prev => ({ ...prev, avatar: data.publicUrl }));
+      }
+      setUploadingAvatar(false);
   };
 
   const navItems = [
@@ -239,6 +245,16 @@ export default function RootLayout({ children }) {
           </div>
         </main>
 
+        {/* 裁剪弹窗 */}
+        {showAvatarCropper && (
+            <ImageCropper 
+                imageSrc={selectedAvatarImg} 
+                aspect={1} // 头像必须是正方形
+                onCancel={() => setShowAvatarCropper(false)}
+                onCropComplete={handleAvatarCropComplete}
+            />
+        )}
+
         {/* --- 编辑弹窗 --- */}
         {isEditingProfile && (
             <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -258,7 +274,7 @@ export default function RootLayout({ children }) {
                              )}
                              <label className="absolute inset-0 bg-black/40 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition">
                                  <Camera size={20} />
-                                 <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploadingAvatar}/>
+                                 <input type="file" className="hidden" accept="image/*" onChange={onAvatarSelect} disabled={uploadingAvatar}/>
                              </label>
                         </div>
                         <p className="text-xs text-slate-400">{uploadingAvatar ? '上传中...' : '点击头像更换'}</p>
