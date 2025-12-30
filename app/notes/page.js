@@ -153,7 +153,7 @@ export default function NotesPage() {
       )}
 
       {/* 瀑布流展示 (小红书风格: Grid) */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {filteredNotes.map(note => (
           <Link key={note.id} href={`/notes/${note.id}`} className="group block bg-white rounded-xl overflow-hidden border hover:shadow-lg transition">
             {/* 封面图区域 */}

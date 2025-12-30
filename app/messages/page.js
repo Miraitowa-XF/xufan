@@ -191,7 +191,7 @@ export default function MessageTree() {
       </div>
 
       {/* 留言列表 */}
-      <div className="columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
+      <div className="columns-1 sm:columns-2 lg:columns-4 gap-6 space-y-6">
         {messages.map(msg => (
             <div key={msg.id} className="break-inside-avoid bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition duration-300 group relative">
                 <div className="text-slate-600 text-sm leading-7 font-medium whitespace-pre-wrap break-words min-h-[40px]">
