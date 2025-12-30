@@ -1,65 +1,112 @@
-import Image from "next/image";
+'use client';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
+import { Camera, User, Book, MessageCircle, ArrowRight } from 'lucide-react';
 
-export default function Home() {
+export default function CoverPage() {
+  const [bgUrl, setBgUrl] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    // 检查是否登录
+    const isLogin = localStorage.getItem('is_my_site_admin');
+    setIsAdmin(!!isLogin);
+    fetchConfig();
+  }, []);
+
+  const fetchConfig = async () => {
+    const { data } = await supabase.from('site_config').select('value').eq('key', 'cover_image').single();
+    // 如果没有设置背景，给一个默认的风景图
+    if (data) setBgUrl(data.value);
+    else setBgUrl('https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=2940&auto=format&fit=crop'); 
+  };
+
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const fileName = `cover-${Date.now()}`;
+    await supabase.storage.from('uploads').upload(fileName, file);
+    const { data } = supabase.storage.from('uploads').getPublicUrl(fileName);
+    await supabase.from('site_config').upsert({ key: 'cover_image', value: data.publicUrl });
+    setBgUrl(data.publicUrl);
+    setUploading(false);
+  };
+
+  // 仿照参考图的菜单按钮样式
+  const menuBtnStyle = "group flex items-center gap-3 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white px-6 py-4 rounded-2xl transition-all duration-300 border border-white/20 hover:border-white/50 hover:pl-8 shadow-lg hover:shadow-xl w-64";
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    // 外层容器：fixed 定位，撑满全屏，层级最高 (z-50)
+    <div className="fixed inset-0 z-50 w-screen h-screen bg-slate-900 overflow-hidden">
+      
+      {/* 背景图层 */}
+      {bgUrl && (
+        <div 
+          className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
+          style={{ backgroundImage: `url(${bgUrl})` }}
+        >
+            {/* 叠加一个淡淡的遮罩，保证文字清晰 */}
+            <div className="absolute inset-0 bg-black/10" />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      )}
+
+      {/* 核心内容区 */}
+      <div className="relative z-10 w-full h-full flex flex-col md:flex-row">
+        
+        {/* 左侧：菜单栏 (复刻参考图) */}
+        <div className="flex-1 flex flex-col justify-center px-12 md:px-24 space-y-6">
+          <div className="mb-8 animate-in slide-in-from-left duration-700">
+             <h1 className="text-6xl font-bold text-white drop-shadow-md tracking-tight mb-2">Welcome</h1>
+             <p className="text-xl text-white/80 font-medium">欢迎来到我的小世界</p>
+          </div>
+
+          {/* 菜单组 */}
+          <div className="space-y-4 animate-in slide-in-from-left duration-1000 delay-100">
+             {/* 因为已经在封面页了，不需要跳转到“封面页”按钮，直接跳内部功能 */}
+             
+             <Link href="/profile" className={menuBtnStyle}>
+                <div className="bg-green-400/80 p-2 rounded-xl text-white group-hover:scale-110 transition">
+                    <User size={24} />
+                </div>
+                <span className="font-bold text-lg tracking-wide">我的主页</span>
+                <ArrowRight className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" size={20}/>
+             </Link>
+
+             <Link href="/notes" className={menuBtnStyle}>
+                <div className="bg-orange-400/80 p-2 rounded-xl text-white group-hover:scale-110 transition">
+                    <Book size={24} />
+                </div>
+                <span className="font-bold text-lg tracking-wide">生活笔记</span>
+                <ArrowRight className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" size={20}/>
+             </Link>
+
+             <Link href="/messages" className={menuBtnStyle}>
+                <div className="bg-blue-400/80 p-2 rounded-xl text-white group-hover:scale-110 transition">
+                    <MessageCircle size={24} />
+                </div>
+                <span className="font-bold text-lg tracking-wide">留言树屋</span>
+                <ArrowRight className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" size={20}/>
+             </Link>
+          </div>
         </div>
-      </main>
+
+        {/* 右侧：留空 (为了展示好看的背景图，就像参考图中间是树一样) */}
+        <div className="flex-1 hidden md:block"></div>
+      </div>
+
+      {/* 管理员更换背景按钮 (右下角) */}
+      {isAdmin && (
+        <div className="absolute bottom-8 right-8 z-20">
+          <label className="flex items-center gap-2 bg-black/30 backdrop-blur hover:bg-black/50 text-white px-5 py-3 rounded-full cursor-pointer transition shadow-lg border border-white/10">
+            <Camera size={20} />
+            <span className="text-sm font-medium">{uploading ? '上传中...' : '更换全屏壁纸'}</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
+          </label>
+        </div>
+      )}
     </div>
   );
 }
