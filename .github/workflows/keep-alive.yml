@@ -2,8 +2,8 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # 每天北京时间早上 8:00 运行一次 (UTC时间 0:00)
-    - cron: '0 0 * * *' 
+    # 每三天运行一次 (UTC时间 0:00)
+    - cron: '0 0 */3 * *' 
   workflow_dispatch:    # 允许你手动点击测试运行
 
 jobs:
@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Ping my website
         run: |
+          echo "Pinging API to wake up Supabase..."
+          curl -sL -D - https://xufan.vercel.app/api/keep-alive -o /dev/null
+
           # 建议直接使用 Vercel 的原始域名
-          # 如果你的某个 API 路由会查数据库（比如 /api/health），访问那个路由效果更好
+          echo "Pinging Homepage to refresh Vercel cache..."
           curl -sL -D - https://xufan.vercel.app -o /dev/null
