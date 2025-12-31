@@ -227,26 +227,25 @@ export default function RootLayout({ children }) {
                         <span className="text-xs md:text-sm group-hover:rotate-12 transition-transform duration-300 -mt-0.5 leading-none">🌸</span>
                         
                         {/* 【手机端】只显示“送花” (省空间) */}
-                        <span className="md:hidden text-[10px] font-bold">送花</span>
+                        <span className="md:hidden text-[10px] font-bold">送出花花</span>
                         {/* 【电脑端】显示完整的“送出花花” (保留原样) */}
                         <span className="hidden md:inline text-xs font-bold">送出花花</span>
                     </button>
 
                     <span className="text-[10px] md:text-xs text-slate-400 font-medium cursor-default">
                         {/* 手机屏幕太小时隐藏“收到”二字 */}
-                        <span className="hidden sm:inline">收到 </span>
-                        
+                        <span>收到 </span>
                         <strong className="text-pink-500 tabular-nums text-xs md:text-sm">{flowerCount}</strong>
                         
                         {/* 【手机端】只显示“朵” */}
-                        <span className="md:hidden"> 朵</span>
+                        <span className="md:hidden"> 朵花花</span>
                         {/* 【电脑端】显示完整的“朵花花” (保留原样) */}
                         <span className="hidden md:inline"> 朵花花</span>
                     </span>
 
                     {showVotedMsg && (
                       <div className="absolute top-16 right-0 md:right-auto bg-slate-800 text-white text-xs px-3 py-2 rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-top-2 whitespace-nowrap">
-                          明天再来吧~
+                          今天已经送过花花啦🌸明天再来吧~
                       </div>
                     )}
                   </div>
