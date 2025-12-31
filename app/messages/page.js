@@ -16,21 +16,32 @@ export default function MessageTree() {
   const [newQ, setNewQ] = useState('');
   const [newA, setNewA] = useState('');
 
+  // 定义 myPosts 状态，用来存“我发过的留言的钥匙”
+  const [myPosts, setMyPosts] = useState({}); 
+
   useEffect(() => {
     const isLogin = localStorage.getItem('is_my_site_admin');
     setIsAdmin(!!isLogin);
+
+    // 网页加载时，去浏览器缓存里把“钥匙串”取出来
+    const localPosts = JSON.parse(localStorage.getItem('my_tree_posts') || '{}');
+    setMyPosts(localPosts);
+
     fetchMessages();
     fetchSecurityConfig();
   }, []);
 
   const fetchMessages = async () => {
+    // 修改的地方：增加 .order('is_top', { ascending: false })
     const { data } = await supabase
         .from('messages')
-        .select('*')
-        .order('is_top', { ascending: false }) // 先排置顶的
-        .order('created_at', { ascending: false }); // 再排最新的
+        .select('*') // 确保获取所有字段，包括 is_top
+        .order('is_top', { ascending: false }) // 先排置顶的，true 在前
+        .order('created_at', { ascending: false }); // 再按时间倒序
     setMessages(data || []);
   };
+
+
 
   const fetchSecurityConfig = async () => {
     const { data: qData } = await supabase.from('site_config').select('value').eq('key', 'security_question').single();
@@ -101,20 +112,30 @@ export default function MessageTree() {
     return adj + noun;
   };
 
-  // --- ✨ 核心修改 2：发布时存入数据库 ---
+  // --- 核心修改：发布时加入 nickname 和 secret_code ---
   const postMessage = async () => {
-    // 1. 生成一个永久昵称
+    // 1. 生成昵称
     const finalNickname = getRandomNickname();
+    // 2. 生成随机密钥
+    const secretCode = Math.random().toString(36).substr(2, 9);
 
-    // 2. 存入数据库
-    const { error } = await supabase.from('messages').insert({ 
+    // 3. 插入数据库，并使用 .select() 获取返回的 ID
+    const { data, error } = await supabase.from('messages').insert({ 
         content: inputContent,
-        nickname: finalNickname // 存进去！
-    });
+        nickname: finalNickname,
+        secret_code: secretCode // 存入密钥
+    }).select(); // important: select() to get the inserted data (including id)
 
     if (error) {
         alert('发布失败，请稍后再试');
     } else {
+        // 4. 成功后，更新本地缓存 (myPosts)
+        const newMsgId = data[0].id; // 获取刚插入的留言 ID
+        const newLocalPosts = { ...myPosts, [newMsgId]: secretCode }; // 存储 {id: secretCode}
+        
+        setMyPosts(newLocalPosts);
+        localStorage.setItem('my_tree_posts', JSON.stringify(newLocalPosts));
+
         setInputContent('');
         fetchMessages();
     }
@@ -139,14 +160,49 @@ export default function MessageTree() {
     alert('门禁问题已更新');
   };
 
-  const handleDelete = async (id, e) => {
-    e.stopPropagation();
-    if (!confirm('确定要把这条留言删掉吗？')) return;
-    const { error } = await supabase.from('messages').delete().eq('id', id);
+  // --- 核心修改：处理删除逻辑 ---
+  const handleDelete = async (msg, e) => { // 注意这里是 msg 对象，不是 msg.id
+    e.stopPropagation(); // 阻止事件冒泡
+    
+    if (!confirm('确定要删除吗？')) return; // 确认操作
+
+    let error = null;
+
+    // --- 权限判断 ---
+    // A: 如果是管理员，直接删除
+    if (isAdmin) {
+        const { error: err } = await supabase.from('messages').delete().eq('id', msg.id);
+        error = err;
+    } 
+    // B: 如果不是管理员，则检查本地有没有对应的 secret_code
+    else {
+        const mySecret = myPosts[msg.id]; // 从本地缓存读取密钥
+        if (!mySecret) { 
+            alert('你没有权限删除这条留言哦'); 
+            return; // 没有权限，直接退出
+        }
+        // 数据库删除：需要 ID 和密钥都匹配
+        const { error: err } = await supabase
+            .from('messages')
+            .delete()
+            .eq('id', msg.id)
+            .eq('secret_code', mySecret); // 用密钥验证
+        error = err;
+    }
+
+    // --- 处理删除结果 ---
     if (error) {
-        alert('删除失败：' + error.message);
+        alert('删除失败');
     } else {
-        setMessages(prev => prev.filter(msg => msg.id !== id));
+        // 删除成功后，如果不是管理员，也清理一下本地缓存
+        if (!isAdmin) {
+            const newLocalPosts = { ...myPosts };
+            delete newLocalPosts[msg.id];
+            setMyPosts(newLocalPosts);
+            localStorage.setItem('my_tree_posts', JSON.stringify(newLocalPosts));
+        }
+        // 前端直接过滤掉这条，模拟删除效果
+        setMessages(prev => prev.filter(m => m.id !== msg.id));
     }
   };
 
@@ -255,21 +311,26 @@ export default function MessageTree() {
                     </div>
                 </div>
 
-                {/* 在 isAdmin 的区域里，增加图钉按钮 */}
-                {isAdmin && (
+                {/* --- 核心修改：删除按钮的显示条件 --- */}
+                {/* 条件1: 是管理员 (isAdmin) */}
+                {/* 条件2: 或者 (||) 这条留言是我发的 (myPosts[msg.id] 存在) */}
+                {(isAdmin || myPosts[msg.id]) && ( 
                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                        {/* 新增：置顶按钮 */}
-                        <button 
-                            onClick={(e) => handleToggleTop(msg.id, msg.is_top, e)}
-                            className={`p-2 rounded-full border shadow-sm transition ${msg.is_top ? 'bg-yellow-400 text-white border-yellow-400' : 'bg-white/90 text-slate-300 hover:text-yellow-500 border-slate-100'}`}
-                            title={msg.is_top ? "取消置顶" : "置顶"}
-                        >
-                            <Pin size={14} fill={msg.is_top ? "currentColor" : "none"}/>
-                        </button>
+                        {/* 置顶按钮 */}
+                        {isAdmin && ( /* 只有管理员能看到置顶按钮 */
+                            <button 
+                                onClick={(e) => handleToggleTop(msg.id, msg.is_top, e)}
+                                className={`p-2 rounded-full border shadow-sm transition ${msg.is_top ? 'bg-yellow-400 text-white border-yellow-400' : 'bg-white/90 text-slate-300 hover:text-yellow-500 border-slate-100'}`}
+                                title={msg.is_top ? "取消置顶" : "置顶"}
+                            >
+                                <Pin size={14} fill={msg.is_top ? "currentColor" : "none"}/>
+                            </button>
+                        )}
 
-                        {/* 原来的删除按钮 */}
+                        {/* 删除按钮 (管理员 或 我自己 发的都能删) */}
                         <button 
-                            onClick={(e) => handleDelete(msg.id, e)}
+                            // ✅ 注意这里传的是 msg 对象，因为 handleDelete 里需要 msg.id 和 msg.secret_code
+                            onClick={(e) => handleDelete(msg, e)} 
                             className="p-2 bg-white/90 text-slate-300 hover:text-red-500 rounded-full shadow-sm border border-slate-100"
                             title="删除"
                         >
