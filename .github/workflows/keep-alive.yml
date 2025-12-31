@@ -1,0 +1,17 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # 每天北京时间早上 8:00 运行一次 (UTC时间 0:00)
+    - cron: '0 0 * * *' 
+  workflow_dispatch:    # 允许你手动点击测试运行
+
+jobs:
+  ping-site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping my website
+        run: |
+          # 建议直接使用 Vercel 的原始域名
+          # 如果你的某个 API 路由会查数据库（比如 /api/health），访问那个路由效果更好
+          curl -sL -D - https://xufan.vercel.app -o /dev/null
