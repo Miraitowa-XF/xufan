@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Send, Settings, Lock, Trash2, Clock, User } from 'lucide-react';
+import { Send, Settings, Lock, Trash2, Clock, User, Pin } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function MessageTree() {
@@ -24,7 +24,11 @@ export default function MessageTree() {
   }, []);
 
   const fetchMessages = async () => {
-    const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .order('is_top', { ascending: false }) // 先排置顶的
+        .order('created_at', { ascending: false }); // 再排最新的
     setMessages(data || []);
   };
 
@@ -144,6 +148,24 @@ export default function MessageTree() {
     }
   };
 
+  // 设置置顶函数：
+  const handleToggleTop = async (id, currentStatus, e) => {
+    e.stopPropagation();
+    
+    // 1. 乐观更新 UI (让你点下去瞬间就看到变化，不用等网络)
+    const newStatus = !currentStatus;
+    setMessages(prev => prev.map(msg => 
+        msg.id === id ? { ...msg, is_top: newStatus } : msg
+    ).sort((a, b) => Number(b.is_top || 0) - Number(a.is_top || 0) || new Date(b.created_at) - new Date(a.created_at)));
+
+    // 2. 提交给数据库
+    const { error } = await supabase.from('messages').update({ is_top: newStatus }).eq('id', id);
+    if (error) {
+        alert('操作失败');
+        fetchMessages(); // 失败了就回滚数据
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto pb-20">
       
@@ -152,7 +174,7 @@ export default function MessageTree() {
         <div className="flex justify-between items-center mb-6">
             <div>
                 <h2 className="text-2xl font-bold text-slate-800">留言树洞</h2>
-                <p className="text-slate-400 text-sm mt-1">在这里，哪怕是碎碎念也会被倾听</p>
+                <p className="text-slate-400 text-sm mt-1">在这里，哪怕是碎碎念也会被认真倾听</p>
             </div>
             {isAdmin && (
                 <button onClick={()=>setShowSettings(!showSettings)} className="text-slate-300 hover:text-indigo-600 p-2 bg-slate-50 rounded-full transition">
@@ -193,7 +215,21 @@ export default function MessageTree() {
       {/* 留言列表 */}
       <div className="columns-1 sm:columns-2 lg:columns-4 gap-6 space-y-6">
         {messages.map(msg => (
-            <div key={msg.id} className="break-inside-avoid bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition duration-300 group relative">
+            <div 
+                key={msg.id} 
+                // 把 className 改成动态的 (置顶变黄，普通变白)
+                className={`break-inside-avoid p-5 rounded-2xl border shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition duration-300 group relative
+                ${msg.is_top 
+                    ? 'bg-yellow-50/50 border-yellow-200' 
+                    : 'bg-white border-slate-100'
+                }`}
+            >
+                {/* 在卡片内部最上面，插入这个“置顶标签” */}
+                {msg.is_top && (
+                    <div className="absolute -top-2 -left-2 bg-yellow-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+                        <Pin size={10} fill="currentColor" /> 置顶
+                    </div>
+                )}
                 <div className="text-slate-600 text-sm leading-7 font-medium whitespace-pre-wrap break-words min-h-[40px]">
                     {msg.content}
                 </div>
@@ -217,14 +253,27 @@ export default function MessageTree() {
                     </div>
                 </div>
 
+                {/* 在 isAdmin 的区域里，增加图钉按钮 */}
                 {isAdmin && (
-                    <button 
-                        onClick={(e) => handleDelete(msg.id, e)}
-                        className="absolute top-2 right-2 p-2 bg-white/90 text-slate-300 hover:text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition shadow-sm border border-slate-100"
-                        title="删除"
-                    >
-                        <Trash2 size={14} />
-                    </button>
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                        {/* 新增：置顶按钮 */}
+                        <button 
+                            onClick={(e) => handleToggleTop(msg.id, msg.is_top, e)}
+                            className={`p-2 rounded-full border shadow-sm transition ${msg.is_top ? 'bg-yellow-400 text-white border-yellow-400' : 'bg-white/90 text-slate-300 hover:text-yellow-500 border-slate-100'}`}
+                            title={msg.is_top ? "取消置顶" : "置顶"}
+                        >
+                            <Pin size={14} fill={msg.is_top ? "currentColor" : "none"}/>
+                        </button>
+
+                        {/* 原来的删除按钮 */}
+                        <button 
+                            onClick={(e) => handleDelete(msg.id, e)}
+                            className="p-2 bg-white/90 text-slate-300 hover:text-red-500 rounded-full shadow-sm border border-slate-100"
+                            title="删除"
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    </div>
                 )}
             </div>
         ))}
