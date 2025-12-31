@@ -271,12 +271,12 @@ export default function MessageTree() {
       </div>
 
       {/* 留言列表 */}
-      <div className="columns-1 sm:columns-2 lg:columns-4 gap-6 space-y-6">
+      <div className="columns-1 sm:columns-2 lg:columns-4 gap-6">
         {messages.map(msg => (
             <div 
                 key={msg.id} 
                 // 把 className 改成动态的 (置顶变黄，普通变白)
-                className={`break-inside-avoid p-5 rounded-2xl border shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition duration-300 group relative
+                className={`break-inside-avoid mb-6 w-full inline-block p-5 rounded-2xl border shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition duration-300 group relative
                 ${msg.is_top 
                     ? 'bg-yellow-50/50 border-yellow-200' 
                     : 'bg-white border-slate-100'
