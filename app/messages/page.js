@@ -58,9 +58,7 @@ export default function MessageTree() {
     }
   };
 
-  // --- ✨ 核心修改 1：生成随机昵称的工具函数 ---
-  const getRandomNickname = () => {
-    const adjectives = [
+  const adjectives = [
         '迷路的', '发呆的', '快乐的', '犯困的', '优雅的', 
         '神秘的', '路过的', '贪吃的', '举着荷叶的', '晒太阳的',
         '说悄悄话的', '喜欢下雨的', '正在做梦的', '想要飞的', 
@@ -75,6 +73,7 @@ export default function MessageTree() {
         '追逐晚风的', '收集月光的', '练习魔法的', '数星星的', 
         '贩卖黄昏的', '等公交的', '写诗的', '环游世界的', '发条没拧紧的'
     ];
+
     const nouns = [
         '小鹿', '蘑菇', '树懒', '猫头鹰', '小松鼠', 
         '萤火虫', '蜗牛', '小刺猬', '龙猫', '小精灵',
@@ -93,6 +92,9 @@ export default function MessageTree() {
         '甜甜圈', '荷包蛋', '仙人掌', '不倒翁', '收音机',
         '星球', '气泡水', '棉花糖'
     ];
+
+  // --- ✨ 核心修改 1：生成随机昵称的工具函数 ---
+  const getRandomNickname = () => {
     // 完全随机选择，不再依赖 ID
     const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
     const noun = nouns[Math.floor(Math.random() * nouns.length)];
