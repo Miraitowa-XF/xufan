@@ -191,40 +191,70 @@ export default function RootLayout({ children }) {
         {/* Main Content */}
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           {!isCoverPage && (
-              <header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-8 z-20 sticky top-0">
-                <div className="text-lg font-bold text-slate-800 bg-white/50 backdrop-blur px-4 py-2 rounded-2xl border border-white/50 shadow-sm">
-                    {/* 手机上只显示 Logo 或当前页名 */}
-                    <span className="md:hidden">My Space</span>
-                    <span className="hidden md:inline">{navItems.find(i=>i.href===pathname)?.name || 'Page'}</span>
+              <header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-8 z-20 sticky top-0 transition-all duration-300">
+                
+                {/* --- 背景层分离：手机纯白(不卡顿)，电脑毛玻璃(高级感) --- */}
+                <div className="absolute inset-0 bg-white md:bg-white/50 md:backdrop-blur-md border-b border-slate-100 shadow-sm -z-10" />
+
+                {/* --- 左侧区域分离 --- */}
+                <div className="flex items-center">
+                    {/* 1.【手机端】显示：小头像 + 名字 (解决 My Space 丑的问题) */}
+                    <div className="md:hidden flex items-center gap-2 bg-slate-50 px-2 py-1 rounded-full border border-slate-100">
+                        <div className="w-7 h-7 rounded-full bg-white overflow-hidden border border-slate-200 shrink-0">
+                           {profile.avatar ? <img src={profile.avatar} className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center text-[10px]">我</div>}
+                        </div>
+                        {/* 名字太长自动省略，最大宽度 80px */}
+                        <span className="text-sm font-bold text-slate-700 truncate max-w-[80px]">{profile.name}</span>
+                    </div>
+
+                    {/* 2.【电脑端】显示：原来的页面标题逻辑 (完全保留) */}
+                    <div className="hidden md:block text-lg font-bold text-slate-800 bg-white/50 backdrop-blur px-4 py-2 rounded-2xl border border-white/50 shadow-sm">
+                        {navItems.find(i=>i.href===pathname)?.name || 'Page'}
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center bg-white rounded-full border border-pink-100 shadow-[0_2px_8px_rgba(244,114,182,0.1)] p-1 pr-4 gap-3 transition-all hover:shadow-[0_4px_12px_rgba(244,114,182,0.2)]">
+                {/* --- 右侧区域分离 --- */}
+                <div className="flex items-center gap-3">
+                  
+                  {/* 花花胶囊：增加 whitespace-nowrap 防止换行 */}
+                  <div className="flex items-center bg-white rounded-full border border-pink-100 shadow-[0_2px_8px_rgba(244,114,182,0.1)] p-1 gap-2 md:gap-3 pr-2 md:pr-4 transition-all hover:shadow-[0_4px_12px_rgba(244,114,182,0.2)] whitespace-nowrap">
+                    
                     <button 
                         onClick={handleSendFlower}
-                        className="bg-pink-50 hover:bg-pink-100 text-pink-500 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all active:scale-95 group"
+                        className="bg-pink-50 hover:bg-pink-100 text-pink-500 px-2 py-1.5 md:px-3 md:py-1.5 rounded-full flex items-center gap-1.5 transition-all active:scale-95 group shrink-0"
                         title="点我送花"
                     >
-                        {/* 3. 这里换成了 Emoji 🌸，比线条图标更可爱，动效：悬停时旋转 */}
-                        <span className="text-sm group-hover:rotate-12 transition-transform duration-300 -mt-0.5 leading-none">🌸</span>
+                        <span className="text-xs md:text-sm group-hover:rotate-12 transition-transform duration-300 -mt-0.5 leading-none">🌸</span>
                         
-                        {/* 1. 添加了文字说明 */}
-                        <span className="text-xs font-bold">送出花花</span>
+                        {/* 【手机端】只显示“送花” (省空间) */}
+                        <span className="md:hidden text-[10px] font-bold">送花</span>
+                        {/* 【电脑端】显示完整的“送出花花” (保留原样) */}
+                        <span className="hidden md:inline text-xs font-bold">送出花花</span>
                     </button>
-                    <span className="text-xs text-slate-400 font-medium cursor-default">
-                        收到 <strong className="text-pink-500 tabular-nums">{flowerCount}</strong> 朵花花
+
+                    <span className="text-[10px] md:text-xs text-slate-400 font-medium cursor-default">
+                        {/* 手机屏幕太小时隐藏“收到”二字 */}
+                        <span className="hidden sm:inline">收到 </span>
+                        
+                        <strong className="text-pink-500 tabular-nums text-xs md:text-sm">{flowerCount}</strong>
+                        
+                        {/* 【手机端】只显示“朵” */}
+                        <span className="md:hidden"> 朵</span>
+                        {/* 【电脑端】显示完整的“朵花花” (保留原样) */}
+                        <span className="hidden md:inline"> 朵花花</span>
                     </span>
+
                     {showVotedMsg && (
-                      <div className="absolute top-16 right-auto bg-slate-800 text-white text-xs px-3 py-2 rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-top-2">
-                          今天已经送过花花啦 🌸 明天再来吧~
+                      <div className="absolute top-16 right-0 md:right-auto bg-slate-800 text-white text-xs px-3 py-2 rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-top-2 whitespace-nowrap">
+                          明天再来吧~
                       </div>
                     )}
                   </div>
+
+                  {/* 登录状态 (保持原样，仅做微小布局适配) */}
                   {isAdmin ? (
-                  <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
-                    {/* 这就是那个绿色小亮点 */}
-                    <span className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)] animate-pulse"></span>
-                    
+                  <div className="flex items-center gap-3 pl-2 md:pl-4 border-l border-slate-200">
+                    <span className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)] animate-pulse shrink-0"></span>
                     <button 
                       onClick={handleLogout} 
                       className="text-slate-400 hover:text-red-500 transition" 
@@ -242,7 +272,7 @@ export default function RootLayout({ children }) {
               </header>
           )}
 
-          {/* 关键修改：pb-20 给底部留出空间，防止内容被底部导航栏挡住 */}
+          {/* 底部留白：手机端 pb-20，电脑端 pb-8 */}
           <div className={`flex-1 overflow-y-auto ${isCoverPage ? 'p-0' : 'p-4 md:p-8 pt-2 pb-20 md:pb-8'}`}>
             {children}
           </div>
